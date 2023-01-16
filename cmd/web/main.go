@@ -13,6 +13,6 @@ func main() {
 	http.HandleFunc("/", handlers.Home)
 	http.HandleFunc("/about", handlers.About)
 
-	fmt.Printf("Starting listening on port %s", portNumber)
+	fmt.Println(fmt.Sprintf("Starting listening on port %s", portNumber))
 	_ = http.ListenAndServe(portNumber, nil)
 }
