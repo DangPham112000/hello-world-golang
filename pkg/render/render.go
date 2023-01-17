@@ -7,25 +7,43 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
+
+	"github.com/DangPham112000/hello-world-golang/pkg/config"
+	"github.com/DangPham112000/hello-world-golang/pkg/models"
 )
 
-func RenderTemplate(w http.ResponseWriter, tmpl string) {
+var app *config.AppConfig
+
+// NewTemplates sets the config for the template package
+func NewTemplates(a *config.AppConfig) {
+	app = a
+}
+
+func addDefaultData(td *models.TemplateData) *models.TemplateData {
+	return td
+}
+
+func RenderTemplate(w http.ResponseWriter, tmpl string, td *models.TemplateData) {
 	fmt.Println("render template")
-	// create a template cache
-	pageCache, err := createTeamplateCache()
-	if err != nil {
-		log.Fatal(err)
+	var pages map[string]*template.Template
+	if app.UseCache {
+		// get the template cache from the app config
+		pages = app.TemplateCache
+	} else {
+		pages, _ = CreateTeamplateCache()
 	}
 
 	// get requested template from cache
-	t, ok := pageCache[tmpl]
+	t, ok := pages[tmpl]
 	if !ok {
-		log.Fatal(err)
+		log.Fatal("Could not get the template from template cache")
 	}
 
 	buf := new(bytes.Buffer)
 
-	err = t.Execute(buf, nil)
+	td = addDefaultData(td)
+
+	err := t.Execute(buf, td)
 
 	if err != nil {
 		log.Println(err)
@@ -38,7 +56,7 @@ func RenderTemplate(w http.ResponseWriter, tmpl string) {
 	}
 }
 
-func createTeamplateCache() (map[string]*template.Template, error) {
+func CreateTeamplateCache() (map[string]*template.Template, error) {
 	pageCache := map[string]*template.Template{}
 
 	// get all of the files named *.page.tmpl from ./templates
