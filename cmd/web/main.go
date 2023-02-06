@@ -4,16 +4,30 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/DangPham112000/hello-world-golang/pkg/config"
 	"github.com/DangPham112000/hello-world-golang/pkg/handlers"
 	"github.com/DangPham112000/hello-world-golang/pkg/render"
+	"github.com/alexedwards/scs/v2"
 )
 
 const portNumber = ":8080"
 
+var app config.AppConfig
+var session *scs.SessionManager
+
 func main() {
-	var app config.AppConfig
+	// change this to true when in production
+	app.InProduction = false
+
+	session = scs.New()
+	session.Lifetime = 24 * time.Hour
+	session.Cookie.Persist = true
+	session.Cookie.SameSite = http.SameSiteLaxMode
+	session.Cookie.Secure = app.InProduction
+
+	app.Session = session
 
 	tc, err := render.CreateTeamplateCache()
 	if err != nil {
